@@ -58,11 +58,18 @@
         (update :fills inc))))
 
 (defn- normalize-side
-  "tape の `:side` は JSON 経由で文字列にも keyword にもなりうる。**片方だけ
-  扱うと上下の色分けが黙って全部 sell 側に倒れる**（比較が false を返すだけで
-  エラーにならない）ので、ここで一度だけ正規化する。"
+  "tape の `:side` を `:buy` / `:sell` にする。
+
+  **live の実際の形は整数**。`torihiki.book` は `(def ^:const bid 0)` /
+  `(def ^:const ask 1)` で、node の tape はその `:taker-side` をそのまま載せる。
+  keyword と文字列も受けるのは、EDN 経路とテストのため。
+
+  一つの形しか扱わないと **上下の色分けと出来高の内訳が黙って片側に全部
+  倒れる** —— 比較が false を返すだけでエラーにならないので、絵は出続ける。
+  最初にここを keyword だけで書いて、live の tape で全部 sell になるところ
+  だった。"
   [s]
-  (if (or (= s :buy) (= s "buy")) :buy :sell))
+  (if (or (= s 0) (= s :buy) (= s "buy") (= s "bid") (= s :bid)) :buy :sell))
 
 (defn candles
   "tape → ブロック足のベクタ（height 昇順）。

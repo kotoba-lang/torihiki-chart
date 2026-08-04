@@ -46,12 +46,18 @@
     (is (= 7 (:volume b)) "5+2")))
 
 (deftest side-is-normalised-so-the-colouring-does-not-silently-collapse
-  ;; JSON 経由で文字列、EDN 経由で keyword。片方だけ扱うと比較が false を
-  ;; 返すだけで、buy が全部 sell に倒れる（エラーにならない）。
-  (let [[k] (c/candles 100 [{:level 1 :qty 7 :side :buy :h 1}])
-        [s] (c/candles 100 [{:level 1 :qty 7 :side "buy" :h 1}])]
-    (is (= 7 (:buy-volume k) (:buy-volume s)))
-    (is (= 0 (:sell-volume k) (:sell-volume s)))))
+  ;; live の実際の形は **整数**: torihiki.book が (def ^:const bid 0) /
+  ;; (def ^:const ask 1) で、node の tape はその :taker-side をそのまま載せる。
+  ;; 一つの形しか扱わないと、比較が false を返すだけで buy が全部 sell に
+  ;; 倒れる（エラーにならないので絵は出続ける）。
+  (doseq [buy [0 :buy "buy" :bid "bid"]]
+    (let [[x] (c/candles 100 [{:level 1 :qty 7 :side buy :h 1}])]
+      (is (= 7 (:buy-volume x)) (str "side " (pr-str buy) " が buy として数えられない"))
+      (is (= 0 (:sell-volume x)))))
+  (doseq [sell [1 :sell "sell" :ask "ask"]]
+    (let [[x] (c/candles 100 [{:level 1 :qty 7 :side sell :h 1}])]
+      (is (= 7 (:sell-volume x)) (str "side " (pr-str sell) " が sell として数えられない"))
+      (is (= 0 (:buy-volume x))))))
 
 (deftest empty-buckets-are-absent-not-invented
   ;; 約定の無い区間に横ばいの足を作るのは、起きていないことを描くこと。
