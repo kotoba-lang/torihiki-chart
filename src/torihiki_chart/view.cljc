@@ -38,8 +38,16 @@
    ;; —— 価格軸を右に置くのは取引所の慣習で、直近値が板と同じ側に来る。
    :pad {:top 8 :right 64 :bottom 20 :left 8}
    ;; 出来高パネルが縦に占める割合。0 で出来高を描かない。
-   :volume-fraction 1/4
-   :candle-padding 3/10
+   ;;
+   ;; `1/4` ではなく `0.25` と書く。Clojure の Ratio は **ClojureScript の
+   ;; 定数になれない**（`clojure.lang.Ratio is not a valid ClojureScript
+   ;; constant` でコンパイルが落ちる）。JVM のテストだけでは通ってしまい、
+   ;; ブラウザ向けの bundle を作った瞬間に初めて出る。
+   ;;
+   ;; ここは画素の割合であって集計値ではないので、小数で構わない ——
+   ;; 整数で閉じる規律が効くのは `candle` と `axis`（同一性が要る側）。
+   :volume-fraction 0.25
+   :candle-padding 0.3
    :price-ticks 5
    :height-ticks 6
    :tick-cents 10

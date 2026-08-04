@@ -4,7 +4,7 @@
 データ → SVG 幾何の純関数群。ADR-2608040300（com-junkawasaki/root）。
 
 **Tier**: `T2` **Role**: `library` **Status**: candle / depth / axis 実装済み、
-32 tests / 1,526 assertions。terminal への配線は未了。
+35 tests / 1,559 assertions（JVM と nbb の両方）。
 
 ## 足は時間ではなくブロック
 
@@ -111,8 +111,16 @@ jp-go-dds skin では bridge の先が DADS primitive なので、
 ## Test
 
 ```bash
-clojure -M:test    # 32 tests, 1,526 assertions
+clojure -M:test                                                   # JVM
+nbb --classpath "src:test:<path-to>/d3/src" test/run_tests.cljs   # ClojureScript
 ```
+
+35 tests / 1,559 assertions、**両方で**。片方だけでは足りない —— `.cljc` は
+両方で動くという主張であって、JVM で通ったことは主張の半分しか証明しない。
+実際 `:candle-padding 3/10` は JVM で全部 green のまま ClojureScript の
+コンパイルを落とした（Clojure の Ratio は cljs の定数になれない）。ブラウザ向けの
+bundle を作った瞬間に初めて出る種類のずれで、`torihiki` 本体が `:parity` を
+持っているのと同じ理由。
 
 ## なぜ `.kotoba` ではないのか
 
