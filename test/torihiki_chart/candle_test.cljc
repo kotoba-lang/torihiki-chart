@@ -60,6 +60,33 @@
     (is (= [1 9] (mapv :h cs)))
     (is (= 2 (count cs)))))
 
+(deftest auto-span-keeps-the-candle-count-near-the-target
+  ;; tape は件数で切られた ring buffer なので、覆う height 幅は板の活発さで
+  ;; 変わる。固定 span はその両端で壊れる。
+  (doseq [width [20 200 2000 50000]]
+    (let [t (for [i (range 200)] {:level 1 :qty 1 :side "buy"
+                                  :h (quot (* i width) 200)})
+          span (c/auto-span 48 t)
+          n (count (c/candles span t))]
+      (is (<= n 96) (str "width " width " で足が " n " 本"))
+      (is (pos? span)))))
+
+(deftest auto-span-is-rounded-so-the-boundaries-do-not-jitter
+  ;; 丸めないと tape が 1 件増えるたびに span が変わり、足の境界が毎ポーリングで
+  ;; ずれる —— 画面が理由なく揺れる。
+  (let [base (for [i (range 100)] {:level 1 :qty 1 :side "buy" :h i})
+        spans (for [extra (range 12)]
+                (c/auto-span 20 (concat base [{:level 1 :qty 1 :side "buy"
+                                               :h (+ 100 extra)}])))]
+    (is (= 1 (count (set spans))) (str "span が揺れた: " (vec spans))))
+  (doseq [s (map #(c/auto-span 10 (for [i (range %)] {:h i :level 1 :qty 1 :side "buy"}))
+                 [11 37 123 999 12345])]
+    (let [m (loop [x s] (if (zero? (mod x 10)) (recur (quot x 10)) x))]
+      (is (contains? #{1 2 5} m) (str "span " s " が 1/2/5 梯子でない")))))
+
+(deftest auto-span-survives-an-empty-tape
+  (is (= 1 (c/auto-span 48 []))))
+
 (deftest direction-follows-open-to-close-not-taker-side
   ;; 1 ブロックに両側の fill が入るので taker side の多数決は近似にしかならず、
   ;; 近似を色にすると『赤い足なのに値が上がっている』が起きる。

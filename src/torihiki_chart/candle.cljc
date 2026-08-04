@@ -91,6 +91,30 @@
                (sorted-map))
        (mapv (fn [[h c]] (assoc c :h h)))))
 
+(defn auto-span
+  "tape が覆う height 幅から span を選ぶ。足が `target` 本前後になるようにする。
+
+  固定 span にできない理由: tape は**件数**で切られた ring buffer（200 件）
+  なので、それが覆う height 幅は板の活発さで変わる。閑散なら 200 件で数千
+  ブロック、活発なら数十ブロック。固定 span はその両端で壊れる —— 前者は
+  数百本の 1px 足、後者は 1 本の足。
+
+  span は 1 / 2 / 5 × 10^k に丸める（`axis/nice-step` と同じ梯子）。丸めないと
+  tape が 1 件増えるたびに span が変わり、**足の境界が毎ポーリングでずれる**
+  —— 画面が理由なく揺れる。"
+  [target tape]
+  (if (empty? tape)
+    1
+    (let [hs (map :h tape)
+          span (max 1 (quot (inc (- (reduce max hs) (reduce min hs)))
+                            (max 1 target)))]
+      ;; `axis` に依存しないためにここで再実装する、ではなく、同じ梯子を
+      ;; 2 箇所に書かないために最小限だけを持つ。
+      (loop [pow 1]
+        (if-let [m (first (filter #(>= (* % pow) span) [1 2 5]))]
+          (* m pow)
+          (recur (* 10 pow)))))))
+
 (defn direction
   "足の向き。`:up` / `:down` / `:flat`。
 
