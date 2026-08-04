@@ -26,10 +26,10 @@
    :pad {:top 8 :right 64 :bottom 20 :left 8}
    :price-ticks 5
    :tick-cents 10
-   :bid-color "var(--color-semantic-success-1)"
-   :ask-color "var(--color-semantic-error-1)"
-   :grid-color "var(--color-neutral-solid-gray-200)"
-   :label-color "var(--color-neutral-solid-gray-600)"
+   :bid-color "var(--hig-palette-green)"
+   :ask-color "var(--hig-palette-red)"
+   :grid-color "var(--hig-color-separator)"
+   :label-color "var(--hig-color-secondary-label)"
    :label-size 10})
 
 (defn- px [x]

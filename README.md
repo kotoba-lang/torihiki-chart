@@ -61,13 +61,21 @@ SVG の**描画側**には依存しない。出力は hiccup の
 `svg` に依存しないのと同じ理由 —— 依存を減らすためではなく、出力が「文字列」
 ではなく「データ」であることを保つため。
 
-## 色を書かない
+## 色を書かない。しかも `--hig-*` で書く
 
-`view` と `depth` に色の literal は 1 つも無い。すべて `--color-*` の custom
-property 参照で、実際の値は design system が決める。そうしておくと
-[`jp-go-dds`](https://github.com/kotoba-lang/jp-go-digital-design-system) の
-`dark` 反転層に**無改造で追従する** —— チャートだけ light のまま取り残される、
-が起きない。テストが hex の混入で落ちる。
+`view` と `depth` に色の literal は 1 つも無い。参照するのは **`--hig-*`** で
+あって DADS の `--color-*` ではない。
+
+`--hig-*` はこのワークスペース共通の token 契約（`shitsuke.hig` が発行し、
+`jp-go-dds.tokens/hig->dads` が DADS primitive へ橋渡しする）なので、**skin が
+kotoba-ui でも jp-go-dds でも同じチャートが正しく出る**。DADS の `--color-*` を
+直に参照すると kotoba-ui skin のページでチャートだけ色を失い、しかも
+**エラーにならない** —— 未定義の custom property はその宣言だけが黙って無効に
+なる。
+
+jp-go-dds skin では bridge の先が DADS primitive なので、
+[`jp-go-dds.dark`](https://github.com/kotoba-lang/jp-go-digital-design-system) の
+反転層に**無改造で追従する**。テストが hex の混入で落ちる。
 
 ## 描かないと決めたもの
 

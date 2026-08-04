@@ -1,17 +1,26 @@
 (ns torihiki-chart.view
   "足 → hiccup SVG。純関数、DOM も fetch も持たない。
 
-  ## 色を書かない
+  ## 色を書かない。しかも `--hig-*` で書く
 
-  この ns に色の literal は 1 つも無い。すべて `--color-*` / `--hig-*` の
-  custom property 参照で、実際の値は design system が決める。そうしておくと
-  `jp-go-dds.dark` の反転層に**無改造で追従する** —— チャートだけ light のまま
-  取り残される、が起きない。
+  この ns に色の literal は 1 つも無い。すべて custom property 参照で、実際の
+  値は design system が決める。
 
-  上下は `--color-semantic-success-1` / `--color-semantic-error-1`。緑が上・赤が
-  下という配色そのものは文化依存（日本と台湾の一部では逆）だが、DADS の
-  semantic token に『上昇』は無いので、成功 / エラーに割り当てている。逆にしたい
-  消費者は `:up-color` / `:down-color` を渡せる。
+  参照するのは **`--hig-*`** であって DADS の `--color-*` ではない。`--hig-*` は
+  このワークスペース共通の token 契約（`shitsuke.hig` が発行し、
+  `jp-go-dds.tokens/hig->dads` が DADS primitive へ橋渡しする）なので、
+  **skin が kotoba-ui でも jp-go-dds でも同じチャートが正しく出る**。DADS の
+  `--color-*` を直に参照すると、kotoba-ui skin のページでチャートだけ色を失う
+  —— 未定義の custom property は**エラーにならず、その宣言だけが黙って無効に
+  なる**（`jp-go-dds.tokens` の docstring が同じ罠を記録している）。
+
+  jp-go-dds skin では bridge の先が DADS primitive なので、`jp-go-dds.dark` の
+  反転層に**無改造で追従する** —— チャートだけ light のまま取り残される、が
+  起きない。
+
+  上下は `--hig-palette-green` / `--hig-palette-red`。緑が上・赤が下という配色
+  そのものは文化依存（日本と台湾の一部では逆）なので、逆にしたい消費者は
+  `:up-color` / `:down-color` を渡せる。
 
   ## SVG の y は下向き
 
@@ -34,11 +43,11 @@
    :price-ticks 5
    :height-ticks 6
    :tick-cents 10
-   :up-color "var(--color-semantic-success-1)"
-   :down-color "var(--color-semantic-error-1)"
-   :flat-color "var(--color-neutral-solid-gray-536)"
-   :grid-color "var(--color-neutral-solid-gray-200)"
-   :label-color "var(--color-neutral-solid-gray-600)"
+   :up-color "var(--hig-palette-green)"
+   :down-color "var(--hig-palette-red)"
+   :flat-color "var(--hig-color-tertiary-label)"
+   :grid-color "var(--hig-color-separator)"
+   :label-color "var(--hig-color-secondary-label)"
    :label-size 10})
 
 (defn- px

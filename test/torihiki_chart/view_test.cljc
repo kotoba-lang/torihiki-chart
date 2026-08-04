@@ -46,8 +46,8 @@
         s (pr-str svg)]
     (is (nil? (re-find #"#[0-9a-fA-F]{3,8}" s))
         "出力に hex がある — dark 反転層に追従しなくなる")
-    (is (str/includes? s "var(--color-semantic-success-1)"))
-    (is (str/includes? s "var(--color-semantic-error-1)"))))
+    (is (str/includes? s "var(--hig-palette-green)"))
+    (is (str/includes? s "var(--hig-palette-red)"))))
 
 (deftest a-flat-candle-still-has-a-body
   ;; 始値 = 終値の足は高さ 0 になり、SVG は高さ 0 の rect を描かない。
@@ -110,8 +110,8 @@
   (let [svg (depth/depth-chart book)
         s (pr-str svg)]
     (is (= :svg (first svg)))
-    (is (str/includes? s "var(--color-semantic-success-1)") "bid")
-    (is (str/includes? s "var(--color-semantic-error-1)") "ask")
+    (is (str/includes? s "var(--hig-palette-green)") "bid")
+    (is (str/includes? s "var(--hig-palette-red)") "ask")
     (is (nil? (re-find #"#[0-9a-fA-F]{3,8}" s)))))
 
 (deftest depth-survives-a-one-sided-book
