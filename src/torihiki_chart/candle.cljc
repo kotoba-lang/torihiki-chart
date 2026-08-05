@@ -39,9 +39,21 @@
   [span h]
   (* span (quot h span)))
 
-(defn- fold-fill
+(defn absorb
   "1 件の fill を足に畳む。tape は**古い順**に渡されている前提
-  （`close` は最後に見た値、`open` は最初に見た値）。"
+  （`close` は最後に見た値、`open` は最初に見た値）。`c` が `nil` なら新しい足。
+
+  ## public なのは node がここを直接呼ぶため
+
+  node は tape を全部持ってから畳むのではなく、**ブロックが確定するたびに
+  1 件ずつ**畳んで保存する（`/candles` が 200 件の ring buffer より長い履歴を
+  返すため）。そのとき node 側に同じ畳み込みを書き直すと、**二箇所で違う足が
+  出たときにどちらが本当か言えなくなる** —— チャートが食い違えばどちらかが
+  嘘をついている、というのがこの名前空間の前提なので、畳み込みは 1 つしか
+  存在してはいけない。
+
+  `side` は `normalize-side` 済みの `:buy` / `:sell` を期待する。node の tape は
+  整数なので、呼ぶ側が `normalize-side` を通すこと。"
   [c {:keys [level qty side]}]
   (if (nil? c)
     {:open level :high level :low level :close level
@@ -57,7 +69,7 @@
         (update (if (= side :buy) :buy-volume :sell-volume) + qty)
         (update :fills inc))))
 
-(defn- normalize-side
+(defn normalize-side
   "tape の `:side` を `:buy` / `:sell` にする。
 
   **live の実際の形は整数**。`torihiki.book` は `(def ^:const bid 0)` /
@@ -94,7 +106,45 @@
        (sort-by :h)
        (reduce (fn [acc f]
                  (let [b (bucket span (:h f))]
-                   (update acc b fold-fill f)))
+                   (update acc b absorb f)))
+               (sorted-map))
+       (mapv (fn [[h c]] (assoc c :h h)))))
+
+(defn- join
+  "2 本の足を 1 本にする。`a` が古い方（`open` は a、`close` は b）。"
+  [a b]
+  (if (nil? a)
+    b
+    {:open (:open a) :close (:close b)
+     :high (max (:high a) (:high b))
+     :low (min (:low a) (:low b))
+     :volume (+ (:volume a) (:volume b))
+     :buy-volume (+ (:buy-volume a) (:buy-volume b))
+     :sell-volume (+ (:sell-volume a) (:sell-volume b))
+     :fills (+ (:fills a) (:fills b))}))
+
+(defn rebucket
+  "細かい足の列を、より粗い `span` の足に畳み直す。
+
+  ## なぜ畳み直せる必要があるのか
+
+  node は足を**保存する**ので、保存時に span を決めてしまうと、あとから別の
+  span で見たくなったとき原資料が無い。だから node は最小の粒度（1 ブロック）
+  で持ち、要求された span へはここで畳む。tape から `candles` を呼ぶのと同じ
+  答えになる —— `bucket` の境界が絶対（0 起点）なので、細かい足をどう束ねても
+  同じ境界に落ちる。
+
+  `cs` は height 昇順の足の列で、各足の `:h` はそれ自身のバケット開始 height。
+  **保存側の span が要求 span を割り切ることを呼び手が保証すること** ——
+  割り切れないと 1 本の保存足が 2 つの要求バケットにまたがり、どちらに入れても
+  嘘になる。1 ブロック粒度で持てば常に割り切れる。
+
+  空のバケットは作らない（`candles` と同じ理由）。"
+  [span cs]
+  (->> cs
+       (reduce (fn [acc c]
+                 (let [b (bucket span (:h c))]
+                   (update acc b join c)))
                (sorted-map))
        (mapv (fn [[h c]] (assoc c :h h)))))
 
