@@ -122,3 +122,39 @@
             [_ v] (select-keys c [:open :high :low :close :volume
                                   :buy-volume :sell-volume :fills :h])]
       (is (integer? v) (str "整数でない値: " v)))))
+
+;; ── 保存した細かい足を畳み直しても、tape から直接畳んだのと同じ ─────────────
+
+(def ^:private noisy-tape
+  (for [h (range 0 97)
+        i (range 0 (inc (mod h 3)))]
+    {:level (+ 100 (mod (* 7 (+ h i)) 23))
+     :qty (inc (mod (* 3 (+ h i)) 5))
+     :side (if (zero? (mod (+ h i) 2)) 0 1)
+     :h h}))
+
+(deftest rebucketing-block-candles-equals-folding-the-tape-directly
+  ;; node が保存するのは 1 ブロック粒度の足で、要求された span へは
+  ;; `rebucket` で畳む。その答えが tape から直接畳んだものと違えば、
+  ;; 「二箇所で違う足が出る」という、この設計が避けたかったことそのもの。
+  (let [base (c/candles 1 noisy-tape)]
+    (doseq [span [1 2 5 10 20 50]]
+      (is (= (c/candles span noisy-tape)
+             (c/rebucket span base))
+          (str "span " span " で保存足の畳み直しが tape 直畳みと食い違った")))))
+
+(deftest rebucketing-does-not-invent-empty-buckets
+  ;; 約定が無いブロック区間に「前の終値で横ばい」の足を作らないこと。
+  (let [sparse [{:level 100 :qty 1 :side 0 :h 0}
+                {:level 105 :qty 1 :side 0 :h 90}]
+        base (c/candles 1 sparse)]
+    (is (= 2 (count (c/rebucket 10 base))))
+    (is (= [0 90] (mapv :h (c/rebucket 10 base))))))
+
+(deftest absorb-builds-the-same-candle-one-fill-at-a-time
+  ;; node は 1 件ずつ畳む。まとめて畳んだものと一致しなければ、履歴と
+  ;; ライブで違う足が出る。
+  (let [fills (map #(update % :side c/normalize-side)
+                   (filter #(< (:h %) 8) noisy-tape))]
+    (is (= (dissoc (first (c/candles 100 fills)) :h)
+           (reduce c/absorb nil fills)))))
