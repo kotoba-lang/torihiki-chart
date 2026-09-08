@@ -29,7 +29,7 @@
 
   volume も同じ理由で lot の総和のまま持つ。ドル換算は表示の都合であって
   集計の都合ではない。"
-  (:require [clojure.string]))
+  (:require [kotoba.lang.text]))
 
 (defn bucket
   "`h` が属するバケットの開始 height。`span` ブロックごとに区切る。

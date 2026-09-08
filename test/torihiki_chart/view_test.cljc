@@ -1,6 +1,6 @@
 (ns torihiki-chart.view-test
   (:require [clojure.test :refer [deftest is testing]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [clojure.walk :as walk]
             [torihiki-chart.candle :as c]
             [torihiki-chart.depth :as depth]
