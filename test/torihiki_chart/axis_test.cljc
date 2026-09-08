@@ -1,6 +1,6 @@
 (ns torihiki-chart.axis-test
   (:require [clojure.test :refer [deftest is testing]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [torihiki-chart.axis :as axis]))
 
 (deftest nice-step-only-ever-returns-1-2-or-5-times-a-power-of-ten
