@@ -111,8 +111,8 @@ jp-go-dds skin では bridge の先が DADS primitive なので、
 ## Test
 
 ```bash
-clojure -M:test                                                   # JVM
-nbb --classpath "src:test:<path-to>/d3/src" test/run_tests.cljk   # ClojureScript
+kbb -M:test                                                   # JVM
+kbb --backend sci --classpath "src:test:<path-to>/d3/src" test/run_tests.cljk   # ClojureScript
 ```
 
 38 tests / 1,568 assertions、**両方で**。片方だけでは足りない —— `.cljc` は
