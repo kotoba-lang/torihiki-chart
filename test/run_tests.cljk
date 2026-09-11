@@ -7,7 +7,7 @@
   いう主張であって JVM だけではその半分しか証明しない（`:candle-padding 3/10`
   が JVM 全green のまま ClojureScript のバンドルを壊した実例がある）。
 
-      nbb --classpath \"src:test:<path-to>/d3/src\" test/run_tests.cljk"
+      kbb --backend sci --classpath \"src:test:<path-to>/d3/src\" test/run_tests.cljk"
   (:require [clojure.test :as t]
             [torihiki-chart.axis-test]
             [torihiki-chart.candle-test]
