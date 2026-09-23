@@ -1,5 +1,5 @@
 (ns torihiki-chart.view-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.lang.text :as str]
             [clojure.walk :as walk]
             [torihiki-chart.candle :as c]

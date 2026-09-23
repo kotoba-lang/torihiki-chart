@@ -1,5 +1,5 @@
 (ns torihiki-chart.axis-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.lang.text :as str]
             [torihiki-chart.axis :as axis]))
 
