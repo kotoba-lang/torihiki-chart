@@ -2,3 +2,4 @@
 .cljs_node_repl/
 node_modules/
 target/
+.nbb/

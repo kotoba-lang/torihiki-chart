@@ -8,7 +8,7 @@
   が JVM 全green のまま ClojureScript のバンドルを壊した実例がある）。
 
       kbb --backend sci --classpath \"src:test:<path-to>/d3/src\" test/run_tests.cljk"
-  (:require [clojure.test :as t]
+  (:require [kotoba.test :as t]
             [torihiki-chart.axis-test]
             [torihiki-chart.candle-test]
             [torihiki-chart.view-test]))
